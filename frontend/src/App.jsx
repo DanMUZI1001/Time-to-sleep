@@ -44,8 +44,6 @@ export default function App() {
 
   const total = data?.total_min || 0
   const target = data?.target_min || 480
-  const weeklyTarget = data?.weekly_target_min || target * 7
-  const diff = data?.diff_min != null ? data.diff_min : (total - weeklyTarget)
   const status = data?.status
 
   return (
@@ -86,13 +84,11 @@ export default function App() {
                   <div className="v">{fmtMin(total)}</div>
                 </div>
                 <div className="stat">
-                  <div className="k">주간 목표 ({fmtMin(weeklyTarget)})</div>
-                  <div className="v" style={{ color: diff >= 0 ? 'var(--good)' : 'var(--bad)' }}>
-                    {diff > 0 ? '+' : ''}{fmtMin(diff)}
-                  </div>
+                  <div className="k">하루 목표 수면시간</div>
+                  <div className="v">{fmtMin(target)}</div>
                 </div>
                 <div className="stat">
-                  <div className="k">수면 상태 (일일평균 차이)</div>
+                  <div className="k">수면 상태</div>
                   <div className="v">{statusBadge(status)}</div>
                 </div>
               </div>

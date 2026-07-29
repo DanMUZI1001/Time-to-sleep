@@ -66,6 +66,8 @@ describe('App', () => {
     render(<App />)
     await waitFor(() => {
       expect(screen.getByText('이번 주 총 수면')).toBeInTheDocument()
+      expect(screen.getByText('하루 목표 수면시간')).toBeInTheDocument()
+      expect(screen.getByText('수면 상태')).toBeInTheDocument()
     })
   })
 })
