@@ -90,7 +90,7 @@ header .sub { color: var(--muted); font-size: 13px; }
 .col { display: flex; flex-direction: column; gap: 8px; }
 
 label { font-size: 13px; color: var(--muted); }
-input[type="number"], input[type="time"], select {
+input[type="number"], input[type="time"], input[type="text"], select {
   background: var(--bg-2);
   border: 1px solid var(--border);
   color: var(--text);
@@ -292,8 +292,34 @@ select.week-select {
 
 .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
 
+.login-card {
+  max-width: 520px;
+  margin: 40px auto 0;
+}
+.login-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.user-menu .btn {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
 @media (max-width: 640px) {
   .timer { font-size: 38px; }
   .day-row { grid-template-columns: 54px 1fr; }
   .day-detail { margin-left: 64px; }
+  .login-row { grid-template-columns: 1fr; }
+  .user-menu { width: 100%; justify-content: space-between; }
 }

@@ -1,6 +1,8 @@
 const REMOTE_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : '')
+const USE_LOCAL_STORAGE = import.meta.env.VITE_STORAGE_MODE === 'local' || (!import.meta.env.DEV && !import.meta.env.VITE_API_BASE)
 const SETTINGS_KEY = 'sleep_tracker_settings'
 const RECORDS_KEY = 'sleep_tracker_records'
+const USER_KEY = 'sleep_tracker_user'
 
 async function jget(url) {
   const r = await fetch(url)
@@ -37,6 +39,14 @@ function writeJson(key, value) {
   localStorage.setItem(key, JSON.stringify(value))
 }
 
+function currentUser() {
+  return localStorage.getItem(USER_KEY) || 'guest'
+}
+
+function userKey(key) {
+  return `${key}_${currentUser()}`
+}
+
 function startOfWeek(d) {
   const date = new Date(d)
   const day = (date.getDay() + 6) % 7
@@ -58,11 +68,11 @@ function diffMin(a, b) {
 }
 
 function targetSleepMin() {
-  return readJson(SETTINGS_KEY, { target_sleep_min: 480 }).target_sleep_min
+  return readJson(userKey(SETTINGS_KEY), { target_sleep_min: 480 }).target_sleep_min
 }
 
 function sleepRecords() {
-  return readJson(RECORDS_KEY, [])
+  return readJson(userKey(RECORDS_KEY), [])
 }
 
 function weeklyStatus(total, target) {
@@ -81,7 +91,7 @@ const localApi = {
     if (typeof target_sleep_min !== 'number' || target_sleep_min < 0) {
       throw new Error('invalid target_sleep_min')
     }
-    writeJson(SETTINGS_KEY, { target_sleep_min })
+    writeJson(userKey(SETTINGS_KEY), { target_sleep_min })
     return { target_sleep_min }
   },
 
@@ -106,13 +116,13 @@ const localApi = {
       created_at: new Date().toISOString()
     }
 
-    writeJson(RECORDS_KEY, [...records, record])
+    writeJson(userKey(RECORDS_KEY), [...records, record])
     return { id, duration_min, week_start }
   },
 
   async deleteSleep(id) {
     const deleteId = Number(id)
-    writeJson(RECORDS_KEY, sleepRecords().filter(record => Number(record.id) !== deleteId))
+    writeJson(userKey(RECORDS_KEY), sleepRecords().filter(record => Number(record.id) !== deleteId))
     return { ok: true }
   },
 
@@ -150,4 +160,4 @@ const remoteApi = {
   getWeek: (week_start) => jget(`${REMOTE_BASE}/week/${week_start}`)
 }
 
-export const api = REMOTE_BASE ? remoteApi : localApi
+export const api = USE_LOCAL_STORAGE ? localApi : remoteApi

@@ -7,12 +7,16 @@ import WeeklyGrid from './components/WeeklyGrid.jsx'
 import WeekNavigator from './components/WeekNavigator.jsx'
 import SoundPlayer from './components/SoundPlayer.jsx'
 
+const USER_KEY = 'sleep_tracker_user'
+
 function statusBadge(status) {
   const cls = status === '좋음' ? 'good' : status === '보통' ? 'normal' : 'bad'
   return <span className={`badge ${cls}`}>{status}</span>
 }
 
 export default function App() {
+  const [user, setUser] = useState(() => localStorage.getItem(USER_KEY) || '')
+  const [nickname, setNickname] = useState('')
   const [tab, setTab] = useState('sleep')
   const currentWeek = isoDate(startOfWeek(new Date()))
   const [selectedWeek, setSelectedWeek] = useState(currentWeek)
@@ -33,8 +37,31 @@ export default function App() {
     try { setWeeks(await api.getWeeks()) } catch {}
   }, [])
 
-  useEffect(() => { loadWeek(selectedWeek) }, [selectedWeek, loadWeek])
-  useEffect(() => { loadWeeks() }, [loadWeeks])
+  useEffect(() => {
+    if (user) loadWeek(selectedWeek)
+  }, [selectedWeek, loadWeek, user])
+
+  useEffect(() => {
+    if (user) loadWeeks()
+  }, [loadWeeks, user])
+
+  const login = (event) => {
+    event.preventDefault()
+    const cleanName = nickname.trim()
+    if (!cleanName) return
+    localStorage.setItem(USER_KEY, cleanName)
+    setUser(cleanName)
+    setNickname('')
+    setSelectedWeek(currentWeek)
+  }
+
+  const logout = () => {
+    localStorage.removeItem(USER_KEY)
+    setUser('')
+    setWeeks([])
+    setData(null)
+    setTab('sleep')
+  }
 
   const onSaved = () => {
     loadWeeks()
@@ -46,12 +73,51 @@ export default function App() {
   const target = data?.target_min || 480
   const status = data?.status
 
+  if (!user) {
+    return (
+      <div className="app">
+        <header>
+          <div>
+            <h1>수면 추적기</h1>
+            <div className="sub">닉네임별로 수면 기록을 따로 저장합니다</div>
+          </div>
+        </header>
+
+        <form className="card login-card" onSubmit={login}>
+          <h2>로그인</h2>
+          <label htmlFor="nickname">닉네임</label>
+          <div className="login-row">
+            <input
+              id="nickname"
+              type="text"
+              value={nickname}
+              onChange={event => setNickname(event.target.value)}
+              maxLength={24}
+              placeholder="예: muzi"
+              autoComplete="username"
+            />
+            <button className="btn" type="submit" disabled={!nickname.trim()}>
+              시작하기
+            </button>
+          </div>
+          <p className="hint">
+            같은 브라우저에서 같은 닉네임으로 다시 로그인하면 이전 기록을 볼 수 있습니다.
+          </p>
+        </form>
+      </div>
+    )
+  }
+
   return (
     <div className="app">
       <header>
         <div>
           <h1>수면 추적기</h1>
           <div className="sub">목표 수면시간 관리 · 주간 기록 · 수면 사운드</div>
+        </div>
+        <div className="user-menu">
+          <span>{user} 님</span>
+          <button className="btn secondary" type="button" onClick={logout}>로그아웃</button>
         </div>
       </header>
 
