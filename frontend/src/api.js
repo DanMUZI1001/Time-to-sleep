@@ -67,9 +67,9 @@ function sleepRecords() {
 
 function weeklyStatus(total, target) {
   const avgDiff = Math.abs(total - target * 7) / 7
-  if (avgDiff <= 60) return '醫뗭쓬'
-  if (avgDiff <= 120) return '蹂댄넻'
-  return '?섏겏'
+  if (avgDiff <= 60) return '좋음'
+  if (avgDiff <= 120) return '보통'
+  return '나쁨'
 }
 
 const localApi = {
