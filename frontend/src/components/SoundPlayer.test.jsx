@@ -7,12 +7,14 @@ beforeEach(() => {
 })
 
 describe('SoundPlayer', () => {
-  test('4개 사운드 카드 렌더링', () => {
+  test('6개 사운드 카드 렌더링', () => {
     render(<SoundPlayer />)
     expect(screen.getByText('백색소음')).toBeInTheDocument()
     expect(screen.getByText('브라운노이즈')).toBeInTheDocument()
     expect(screen.getByText('빗소리')).toBeInTheDocument()
     expect(screen.getByText('말랑이소리')).toBeInTheDocument()
+    expect(screen.getByText('선풍기 바람소리')).toBeInTheDocument()
+    expect(screen.getByText('보글보글 소리')).toBeInTheDocument()
   })
 
   test('초기 상태: 재생 중인 소리 없음', () => {
@@ -30,11 +32,13 @@ describe('SoundPlayer', () => {
     render(<SoundPlayer />)
     expect(screen.getByText('고르게 퍼지는 정적')).toBeInTheDocument()
     expect(screen.getByText('낮고 깊은 포근한 소리')).toBeInTheDocument()
+    expect(screen.getByText('팬이 도는 일정한 바람')).toBeInTheDocument()
+    expect(screen.getByText('작게 올라오는 물방울')).toBeInTheDocument()
   })
 
   test('탭하여 재생 메시지 표시', () => {
     render(<SoundPlayer />)
     const tapMessages = screen.getAllByText('탭하여 재생')
-    expect(tapMessages.length).toBe(4)
+    expect(tapMessages.length).toBe(6)
   })
 })

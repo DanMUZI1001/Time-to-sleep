@@ -4,7 +4,9 @@ const SOUNDS = [
   { id: 'white', name: '백색소음', color: '#e8eaff', desc: '고르게 퍼지는 정적' },
   { id: 'brown', name: '브라운노이즈', color: '#a98c5a', desc: '낮고 깊은 포근한 소리' },
   { id: 'rain', name: '빗소리', color: '#5aa9e8', desc: '부드러운 빗방울' },
-  { id: 'squishy', name: '말랑이소리', color: '#ff9ad5', desc: '말랑말랑 스퀴시' }
+  { id: 'squishy', name: '말랑이소리', color: '#ff9ad5', desc: '말랑말랑 스퀴시' },
+  { id: 'fan', name: '선풍기 바람소리', color: '#9fd3ff', desc: '팬이 도는 일정한 바람' },
+  { id: 'bubbles', name: '보글보글 소리', color: '#78f0d4', desc: '작게 올라오는 물방울' }
 ]
 
 function createNoiseBuffer(ctx, type) {
@@ -78,6 +80,91 @@ function startSquishy(ctx, dest) {
   return () => { stopped = true }
 }
 
+function startFan(ctx, dest) {
+  const noise = ctx.createBufferSource()
+  noise.buffer = createNoiseBuffer(ctx, 'brown')
+  noise.loop = true
+
+  const air = ctx.createBiquadFilter()
+  air.type = 'bandpass'
+  air.frequency.value = 420
+  air.Q.value = 0.7
+
+  const hum = ctx.createOscillator()
+  hum.type = 'sine'
+  hum.frequency.value = 92
+
+  const humGain = ctx.createGain()
+  humGain.gain.value = 0.08
+
+  const wobble = ctx.createOscillator()
+  wobble.type = 'sine'
+  wobble.frequency.value = 0.35
+
+  const wobbleGain = ctx.createGain()
+  wobbleGain.gain.value = 0.05
+
+  const windGain = ctx.createGain()
+  windGain.gain.value = 0.35
+
+  wobble.connect(wobbleGain)
+  wobbleGain.connect(windGain.gain)
+  noise.connect(air)
+  air.connect(windGain)
+  windGain.connect(dest)
+  hum.connect(humGain)
+  humGain.connect(dest)
+
+  noise.start()
+  hum.start()
+  wobble.start()
+
+  return () => {
+    try { noise.stop() } catch {}
+    try { hum.stop() } catch {}
+    try { wobble.stop() } catch {}
+  }
+}
+
+function startBubbles(ctx, dest) {
+  let stopped = false
+  const timers = new Set()
+
+  const schedule = () => {
+    if (stopped) return
+    const t = ctx.currentTime
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(260 + Math.random() * 220, t)
+    osc.frequency.exponentialRampToValueAtTime(700 + Math.random() * 420, t + 0.12)
+
+    const bp = ctx.createBiquadFilter()
+    bp.type = 'bandpass'
+    bp.frequency.value = 620
+    bp.Q.value = 4
+
+    const eg = ctx.createGain()
+    eg.gain.setValueAtTime(0, t)
+    eg.gain.linearRampToValueAtTime(0.18 + Math.random() * 0.14, t + 0.015)
+    eg.gain.exponentialRampToValueAtTime(0.001, t + 0.18)
+
+    osc.connect(bp)
+    bp.connect(eg)
+    eg.connect(dest)
+    osc.start(t)
+    osc.stop(t + 0.22)
+
+    const timer = setTimeout(schedule, 120 + Math.random() * 260)
+    timers.add(timer)
+  }
+
+  schedule()
+  return () => {
+    stopped = true
+    timers.forEach(timer => clearTimeout(timer))
+  }
+}
+
 function startSound(ctx, master, id) {
   const g = ctx.createGain()
   g.gain.value = 0.8
@@ -86,6 +173,8 @@ function startSound(ctx, master, id) {
   if (id === 'brown') return startNoise(ctx, g, 'brown')
   if (id === 'rain') return startRain(ctx, g)
   if (id === 'squishy') return startSquishy(ctx, g)
+  if (id === 'fan') return startFan(ctx, g)
+  if (id === 'bubbles') return startBubbles(ctx, g)
   return () => {}
 }
 
